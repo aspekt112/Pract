@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Add</title>
+	<link rel=stylesheet type=text/css href="/static/pract/jquery-ui.css">
+	<link rel="stylesheet" type="text/css" href="/static/pract/add_form.css">
+	<link rel=stylesheet type=text/css href="/static/pract/uniform.default.css">
+		<link rel=stylesheet type=text/css href="/static/pract/jquery.dataTables.css">
+	<script src = /static/pract/jquery.js></script>
+	<script src = /static/pract/jquery.dataTables.js></script>
+	<script src = /static/pract/jquery-ui.min.js></script>
+	<script src = /static/pract/jquery.form.js></script>
+	<script src = /static/pract/jquery.jquery.uniform.js></script>
+</head>
+<body>
+	<div class="input">
+		<label><p>Введите адрес здесь:</p></label>
+		<form action="/add/" method="get" class="forms" id="forms">
+			<input type="text" name="node" class="form-field">
+			<input type="submit" value="Начать тестирование!" id="button">
+		</form>
+	</div>
+
+	<div class="formset" id="formset">
+		<p>{{ label }}</p>
+		<form method="post" action="">
+			{{ formset }}
+		</form>
+	</div>
+
+	<div id="dialog" title="Сообщения">
+		<p> {{ message }} </p>
+	</div>
+
+	<table id="tables">
+		
+	</table>
+<script>
+	$("#dialog").dialog();
+	$("#button").button();
+</script>
+
+</body>
+</html>

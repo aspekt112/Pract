@@ -1,0 +1,76 @@
+# -*- coding: utf-8 -*-
+from django.shortcuts import render_to_response
+from django.http import HttpResponse
+from django.forms.models import modelformset_factory
+from nodes.models import Node, Ping, Traceroute, Nmap
+import datetime
+import xmlrpclib
+import re
+
+# Create your views below.
+def index(request):
+	return HttpResponse("Привет мир! :)")
+
+def add_form(request):
+	#formset = formseting(request, Node)
+	label = "Таблица существующих адресов: "
+	message = "Какой адрес вы хотите протестировать? Введите его в форму выше! "
+	return render_to_response("add_form.html", {  "label": label, "message": message, })
+
+
+def add(request):
+	destination = "127.0.0.1"
+	message = "Какой адрес вы хотите протестировать? Введите его в форму выше! "
+	if 'node' in request.GET:
+		destination = request.GET['node']
+		if correct(destination):
+			if not exist(destination, Node):
+				nodes = Node.objects.create(name = destination, created = datetime.date.today(), avg_ping = "Current average ping time")
+				nodes.average = test(destination)
+				nodes.save()
+			else: 
+				nodes = Node.objects.get(name = destination)
+				nodes.avg_ping = test(destination)
+				nodes.save()
+			message = "Узел %r успешно протестирован!" % request.GET['node']
+		else: message = "Ошибка в адресе. Введите правильный URL или IP, например 127.0.0.1 или  yandex.ru"
+	else: message = "Отправлена пустая форма, введите URL или IP"
+	#avg_ping = get_latest_ping(destination)
+
+	database = Node.objects.all()
+
+	label = "Таблица существующих адресов: "
+	return render_to_response("add_form.html", {"label": label,
+												"message": message,
+												"database": database,
+												#"avg_ping": avg_ping
+												})
+
+def correct(destination):
+	correct = re.search("(\d+.\d+.\d+.\d+)|(\w+\\.com|\\.ru)", destination)
+	return correct
+
+def exist(destination,db):
+	exist = False
+	bd = db.objects.all()
+	for element in bd:
+		if element.name == destination:
+			exist = True
+			break
+	return exist
+
+def test(destination):
+	proxy = xmlrpclib.ServerProxy('http://localhost:8080')
+
+	nodes = Node.objects.get(name = destination)
+
+	ping = Ping.objects.create(node = nodes, average = proxy.ping(destination), date = datetime.datetime.today())
+	curr_ping = ping.average
+	traceroute = Traceroute.objects.create(node = nodes, hop = proxy.traceroute(destination), date = datetime.datetime.today())
+	###nmap = Nmap.objects.create(node = nodes, something = proxy.nmap(destination), date = datetime.datetime.today())
+	return curr_ping
+
+def get_latest_ping(destination):
+	nodes = Node.objects.get(name = destination)
+	ping = Ping.objects.latest('date')
+	return ping
